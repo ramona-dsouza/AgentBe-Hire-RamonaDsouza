@@ -88,7 +88,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4.1-mini",
+        workflow_id: "wf_699c69fbec20819089926e5f931f03d10b5ea835ec169e04",
         input: input,
       }),
     });
