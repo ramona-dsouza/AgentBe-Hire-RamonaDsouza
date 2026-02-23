@@ -1,5 +1,3 @@
-const WORKFLOW_ID = "wf_699c69fbec20819089926e5f931f03d10b5ea835ec169e04";
-
 function extractAssistantText(data) {
   const items = data.output_items ?? data.output ?? [];
   for (const item of [...items].reverse()) {
@@ -31,8 +29,8 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        workflow: { id: WORKFLOW_ID },
-        input: input || "init",
+        model: "gpt-4.1-mini",
+        input: input,
       }),
     });
 
