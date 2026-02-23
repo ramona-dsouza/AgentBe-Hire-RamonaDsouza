@@ -37,12 +37,6 @@ Internal logging rule After generating the final response, internally classify t
         model: 'gpt-4o',
         instructions: SYSTEM_PROMPT,
         input: message,
-        tools: [
-          {
-            type: 'file_search',
-            vector_store_ids: ['vs_699c6a6799388191ae45c611b89fbb4b'],
-          }
-        ],
       }),
     });
 
@@ -53,38 +47,12 @@ Internal logging rule After generating the final response, internally classify t
       return res.status(response.status).json({ error: data.error?.message || 'OpenAI error' });
     }
 
-    // Log full output shape to Vercel logs for debugging
-    console.log('OUTPUT SHAPE:', JSON.stringify(data.output, null, 2));
+    const output =
+      data.output_text ||
+      data.output?.[0]?.content?.[0]?.text ||
+      'No response';
 
-    // Walk every block and content item until we find text
-    let output = null;
-
-    if (data.output_text) {
-      output = data.output_text;
-    } else if (Array.isArray(data.output)) {
-      for (const block of data.output) {
-        // Shape A: { type: 'message', content: [{ type: 'text', text: '...' }] }
-        if (block.type === 'message' && Array.isArray(block.content)) {
-          for (const part of block.content) {
-            if (part.type === 'text' && part.text) {
-              output = part.text;
-              break;
-            }
-          }
-        }
-        // Shape B: { type: 'text', text: '...' }
-        if (!output && block.type === 'text' && block.text) {
-          output = block.text;
-        }
-        // Shape C: direct string
-        if (!output && typeof block === 'string') {
-          output = block;
-        }
-        if (output) break;
-      }
-    }
-
-    res.status(200).json({ reply: output || 'No response' });
+    res.status(200).json({ reply: output });
 
   } catch (err) {
     console.error('Handler error:', err.message);
