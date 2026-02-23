@@ -1,3 +1,17 @@
+const WORKFLOW_ID = "wf_699c69fbec20819089926e5f931f03d10b5ea835ec169e04";
+
+function extractAssistantText(data) {
+  const items = data.output_items ?? data.output ?? [];
+  for (const item of [...items].reverse()) {
+    if (item.type === "message" && Array.isArray(item.content)) {
+      for (const block of item.content) {
+        if (block.type === "output_text" && block.text) return block.text;
+      }
+    }
+  }
+  return "";
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "https://ramona-dsouza.github.io");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -8,24 +22,25 @@ export default async function handler(req, res) {
 
   try {
     const { message } = req.body || {};
-    if (!message) return res.status(400).json({ error: "Missing message" });
+    const input = typeof message === "string" && message.trim() ? message.trim() : "";
 
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: message }],
+        workflow: { id: WORKFLOW_ID },
+        input: input || "init",
       }),
     });
 
     const data = await r.json();
     if (!r.ok) return res.status(r.status).json({ error: data });
 
-    return res.status(200).json({ reply: data.choices?.[0]?.message?.content ?? "" });
+    const reply = extractAssistantText(data);
+    return res.status(200).json({ reply });
   } catch (e) {
     return res.status(500).json({ error: String(e) });
   }
