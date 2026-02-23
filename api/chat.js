@@ -18,6 +18,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        model: 'gpt-4o',
         workflow_id: 'wf_699c69fbec20819089926e5f931f03d10b5ea835ec169e04',
         input: message,
       }),
